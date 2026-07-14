@@ -38,5 +38,4 @@ public class ConservationRequest {
 
     @OneToMany(mappedBy = "conservationRequest")
     private List<Document> documents;
-
 }
