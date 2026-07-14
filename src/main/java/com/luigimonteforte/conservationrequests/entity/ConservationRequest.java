@@ -1,0 +1,42 @@
+package com.luigimonteforte.conservationrequests.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.Instant;
+import java.util.List;
+
+
+@Entity
+@Table(uniqueConstraints = {
+        @UniqueConstraint(name = "uk_conservation_request_producer_external", columnNames = {"producer_id", "external_id"})
+})
+@Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class ConservationRequest {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
+    private Long id;
+
+    @Column(name = "external_id", nullable = false)
+    private Long externalId;
+
+    @Column(name = "producer_id", nullable = false)
+    private Long producerId;
+
+    private String documentType;
+
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
+    private Instant createdAt;
+    private Instant updatedAt;
+
+    @OneToMany(mappedBy = "conservationRequest")
+    private List<Document> documents;
+
+}
