@@ -1,0 +1,14 @@
+package com.luigimonteforte.conservationrequests.model;
+
+import com.luigimonteforte.conservationrequests.entity.Request;
+import com.luigimonteforte.conservationrequests.entity.Status;
+
+import java.time.Instant;
+import java.util.List;
+
+/**
+ * DTO for {@link Request}
+ */
+public record RequestDto(Long externalId, Long producerId, String documentType, Status status,
+                         Instant createdAt, Instant updatedAt, List<DocumentDto> documents) {
+}

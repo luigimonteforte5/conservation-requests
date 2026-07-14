@@ -16,7 +16,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ConservationRequest {
+public class Request {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
@@ -36,6 +36,6 @@ public class ConservationRequest {
     private Instant createdAt;
     private Instant updatedAt;
 
-    @OneToMany(mappedBy = "conservationRequest")
+    @OneToMany(mappedBy = "request")
     private List<Document> documents;
 }

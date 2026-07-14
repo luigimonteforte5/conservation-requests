@@ -26,5 +26,5 @@ public class Document {
     private Instant documentDate;
 
     @ManyToOne
-    private ConservationRequest conservationRequest;
+    private Request request;
 }
