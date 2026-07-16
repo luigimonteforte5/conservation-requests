@@ -29,13 +29,15 @@ public class RequestService {
     public RequestDto createRequest(CreateRequestDto createRequestDto) {
         checkIfRequestExists(createRequestDto);
         Request newRequest = requestMapper.toEntity(createRequestDto);
-        log.debug("Creating request: {}", newRequest);
         newRequest.setCreatedAt(Instant.now());
         newRequest.setUpdatedAt(Instant.now());
-        return requestMapper.toDto(requestRepository.save(newRequest));
+        Request saved = requestRepository.save(newRequest);
+        log.info("Created request {} for producerId={}, externalId={}", saved.getId(), saved.getProducerId(), saved.getExternalId());
+        return requestMapper.toDto(saved);
     }
 
     public Page<RequestDto> getRequests(Long producerId, Status status, Pageable pageable) {
+        log.debug("Fetching requests with producerId={}, status={}, page={}", producerId, status, pageable);
         Specification<Request> spec = RequestSpecification.hasProducerId(producerId).and(RequestSpecification.hasStatus(status));
         Page<Request> requests = requestRepository.findAll(spec, pageable);
         return requests.map(requestMapper::toDto);
@@ -53,7 +55,9 @@ public class RequestService {
         }
         found.setStatus(target);
         found.setUpdatedAt(Instant.now());
-        return requestMapper.toDto(requestRepository.save(found));
+        Request saved = requestRepository.save(found);
+        log.info("Request {} transitioned from {} to {}", id, current, target);
+        return requestMapper.toDto(saved);
     }
 
     private void checkIfRequestExists(CreateRequestDto createRequestDto) {
