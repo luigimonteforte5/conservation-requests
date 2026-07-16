@@ -17,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -28,6 +30,8 @@ public class RequestService {
         checkIfRequestExists(createRequestDto);
         Request newRequest = requestMapper.toEntity(createRequestDto);
         log.debug("Creating request: {}", newRequest);
+        newRequest.setCreatedAt(Instant.now());
+        newRequest.setUpdatedAt(Instant.now());
         return requestMapper.toDto(requestRepository.save(newRequest));
     }
 
@@ -48,13 +52,14 @@ public class RequestService {
             throw new InvalidStateTransitionException(String.format("Cannot transition request %d from %s to %s", id, current, target));
         }
         found.setStatus(target);
+        found.setUpdatedAt(Instant.now());
         return requestMapper.toDto(requestRepository.save(found));
     }
 
     private void checkIfRequestExists(CreateRequestDto createRequestDto) {
         Long producerId = createRequestDto.producerId();
         Long externalId = createRequestDto.externalId();
-        if(requestRepository.existsByExternalIdAndProducerId(externalId, producerId)){
+        if (requestRepository.existsByExternalIdAndProducerId(externalId, producerId)) {
             log.error("Request already exists");
             throw new DuplicateRequestException(String.format("Request with externalId %d and producerId %d already exists", externalId, producerId));
         }
