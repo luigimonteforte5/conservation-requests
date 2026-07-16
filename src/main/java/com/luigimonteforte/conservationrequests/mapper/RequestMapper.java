@@ -1,12 +1,14 @@
 package com.luigimonteforte.conservationrequests.mapper;
 
 import com.luigimonteforte.conservationrequests.entity.Request;
+import com.luigimonteforte.conservationrequests.model.CreateRequestDto;
 import com.luigimonteforte.conservationrequests.model.RequestDto;
 import org.mapstruct.*;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface RequestMapper {
     Request toEntity(RequestDto requestDto);
+    Request toEntity(CreateRequestDto requestDto);
 
     @AfterMapping
     default void linkDocuments(@MappingTarget Request request) {
