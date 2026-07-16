@@ -9,6 +9,6 @@ import java.util.List;
 /**
  * DTO for {@link Request}
  */
-public record RequestDto(Long externalId, Long producerId, String documentType, Status status,
+public record RequestDto(Long id, Long externalId, Long producerId, String documentType, Status status,
                          Instant createdAt, Instant updatedAt, List<DocumentDto> documents) {
 }
