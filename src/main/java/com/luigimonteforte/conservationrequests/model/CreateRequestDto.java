@@ -1,5 +1,6 @@
 package com.luigimonteforte.conservationrequests.model;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -10,5 +11,5 @@ public record CreateRequestDto(
         @NotNull Long producerId,
         @NotBlank String documentType,
         @NotNull Long externalId,
-        @NotNull @NotEmpty List<DocumentDto> documents) {
+        @NotNull @NotEmpty @Valid List<DocumentDto> documents) {
 }
