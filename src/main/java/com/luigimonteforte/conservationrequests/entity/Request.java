@@ -36,6 +36,6 @@ public class Request {
     private Instant createdAt;
     private Instant updatedAt;
 
-    @OneToMany(mappedBy = "request")
+    @OneToMany(mappedBy = "request", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Document> documents;
 }
