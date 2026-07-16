@@ -76,6 +76,27 @@ class RequestServiceTest {
     }
 
     @Test
+    @DisplayName("createRequest sets createdAt and updatedAt to the current time before saving")
+    void createRequest_setsCreatedAtAndUpdatedAt_toCurrentTime() {
+        CreateRequestDto createRequestDto = new CreateRequestDto(1L, "INVOICE", 100L, List.of(sampleDocumentDto()));
+        Request mappedEntity = Request.builder().externalId(100L).producerId(1L).documentType("INVOICE").build();
+        Request savedEntity = Request.builder().id(10L).build();
+        RequestDto expectedDto = new RequestDto(10L, 100L, 1L, "INVOICE", Status.RECEIVED, null, null, List.of());
+
+        when(requestRepository.existsByExternalIdAndProducerId(100L, 1L)).thenReturn(false);
+        when(requestMapper.toEntity(createRequestDto)).thenReturn(mappedEntity);
+        when(requestRepository.save(mappedEntity)).thenReturn(savedEntity);
+        when(requestMapper.toDto(savedEntity)).thenReturn(expectedDto);
+
+        Instant before = Instant.now();
+        requestService.createRequest(createRequestDto);
+        Instant after = Instant.now();
+
+        assertThat(mappedEntity.getCreatedAt()).isNotNull().isBetween(before, after);
+        assertThat(mappedEntity.getUpdatedAt()).isNotNull().isBetween(before, after);
+    }
+
+    @Test
     @DisplayName("createRequest throws DuplicateRequestException when producerId + externalId already exist")
     void createRequest_throwsDuplicateRequestException_whenAlreadyExists() {
         CreateRequestDto createRequestDto = new CreateRequestDto(1L, "INVOICE", 100L, List.of(sampleDocumentDto()));
@@ -139,6 +160,26 @@ class RequestServiceTest {
 
         assertThat(result).isEqualTo(dto);
         assertThat(entity.getStatus()).isEqualTo(to);
+    }
+
+    @Test
+    @DisplayName("changeStatus updates updatedAt to the current time while leaving createdAt untouched")
+    void changeStatus_updatesUpdatedAt_whileKeepingCreatedAt() {
+        Instant originalCreatedAt = Instant.parse("2020-01-01T00:00:00Z");
+        Request entity = Request.builder().id(5L).status(Status.RECEIVED).createdAt(originalCreatedAt).build();
+        Request saved = Request.builder().id(5L).status(Status.VALIDATED).build();
+        RequestDto dto = new RequestDto(5L, null, null, null, Status.VALIDATED, null, null, null);
+
+        when(requestRepository.findById(5L)).thenReturn(Optional.of(entity));
+        when(requestRepository.save(entity)).thenReturn(saved);
+        when(requestMapper.toDto(saved)).thenReturn(dto);
+
+        Instant before = Instant.now();
+        requestService.changeStatus(5L, Status.VALIDATED);
+        Instant after = Instant.now();
+
+        assertThat(entity.getCreatedAt()).isEqualTo(originalCreatedAt);
+        assertThat(entity.getUpdatedAt()).isNotNull().isBetween(before, after);
     }
 
     static Stream<Arguments> legalTransitions() {
