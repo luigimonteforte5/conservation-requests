@@ -43,8 +43,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	@ExceptionHandler(BadCredentialsException.class)
-	public ProblemDetail handleBadCredentials(BadCredentialsException ex) {
-		return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
+	public ResponseEntity<ProblemDetail> handleBadCredentials(BadCredentialsException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
+		return ResponseEntity
+				.status(HttpStatus.UNAUTHORIZED)
+				.header(HttpHeaders.WWW_AUTHENTICATE, "Bearer")
+				.body(problem);
 	}
 
 	@Override
