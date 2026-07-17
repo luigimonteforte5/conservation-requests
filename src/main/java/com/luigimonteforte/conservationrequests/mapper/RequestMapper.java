@@ -5,18 +5,14 @@ import com.luigimonteforte.conservationrequests.model.CreateRequestDto;
 import com.luigimonteforte.conservationrequests.model.RequestDto;
 import org.mapstruct.*;
 
-@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING, uses = DocumentMapper.class)
 public interface RequestMapper {
-    Request toEntity(RequestDto requestDto);
-    Request toEntity(CreateRequestDto requestDto);
+	Request toEntity(CreateRequestDto requestDto);
 
-    @AfterMapping
-    default void linkDocuments(@MappingTarget Request request) {
-        request.getDocuments().forEach(document -> document.setRequest(request));
-    }
+	@AfterMapping
+	default void linkDocuments(@MappingTarget Request request) {
+		request.getDocuments().forEach(document -> document.setRequest(request));
+	}
 
-    RequestDto toDto(Request request);
-
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    Request partialUpdate(RequestDto requestDto, @MappingTarget Request request);
+	RequestDto toDto(Request request);
 }
