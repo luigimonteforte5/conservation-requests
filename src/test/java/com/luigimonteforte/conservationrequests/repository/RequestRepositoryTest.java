@@ -4,6 +4,7 @@ import com.luigimonteforte.conservationrequests.entity.Document;
 import com.luigimonteforte.conservationrequests.entity.Request;
 import com.luigimonteforte.conservationrequests.entity.Status;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,18 @@ class RequestRepositoryTest {
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
+    }
+
+    @Test
+    @DisplayName("findWithLockById acquires a write lock on the row it reads")
+    void findWithLockById_acquiresAWriteLock() {
+        Request saved = requestRepository.save(request(1L, 100L));
+        entityManager.flush();
+        entityManager.clear();
+
+        Request locked = requestRepository.findWithLockById(saved.getId()).orElseThrow();
+
+        assertEquals(LockModeType.PESSIMISTIC_WRITE, entityManager.getLockMode(locked));
     }
 
     @Test
