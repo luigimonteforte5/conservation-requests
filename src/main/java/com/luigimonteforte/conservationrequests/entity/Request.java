@@ -9,7 +9,7 @@ import java.util.List;
 
 @Entity
 @Table(uniqueConstraints = {
-        @UniqueConstraint(name = "uk_conservation_request_producer_external", columnNames = {"producer_id", "external_id"})
+        @UniqueConstraint(name = "uk_request_producer_external", columnNames = {"producer_id", "external_id"})
 })
 @Builder
 @Getter
