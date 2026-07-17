@@ -14,7 +14,7 @@ spring:
 
 app:
   security:
-    jwt-secret: VUC0ZdHDb3orC7IMws28oVGBrdcL4YlEWdbB13zdWYK
+    jwt-secret: not-a-secret-test-only-jwt-signing-key-0123456789
     admin-username: sa
     admin-password: $2a$12$ObxTqLVMyw2pPx775TKVHe9bf707Vgtrvx5uwuqu.bofVmP7LPLFa
   encryption:

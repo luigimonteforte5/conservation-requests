@@ -16,7 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("JwtServices")
 class JwtServiceTest {
-    private static final String TEST_KEY = "swD1K5zvcITvpdpzWhJTfs68QrcLdoTpAbH9hjpxbFL";
+    private static final String TEST_KEY = "not-a-secret-test-only-jwt-signing-key-0123456789";
+    private static final String ANOTHER_TEST_KEY = "not-a-secret-a-different-test-only-signing-key-42";
 
     private JwtService jwtServiceWith(Duration duration, String key) {
         return new JwtService(new AppSecurityProperties(false, List.of(), key, duration, "unused", "unused"));
@@ -36,7 +37,7 @@ class JwtServiceTest {
     @Test
     @DisplayName("should throw exception when token is signed with another key")
     void shouldThrowException_whenTokenIsSignedWithAnotherKey(){
-        JwtService jwtServiceWithAnotherKey = jwtServiceWith(Duration.ofMinutes(5), "VUC0ZdHDb3orC7IMws28oVGBrdcL4YlEWdbB13zdWYK");
+        JwtService jwtServiceWithAnotherKey = jwtServiceWith(Duration.ofMinutes(5), ANOTHER_TEST_KEY);
         String token = testService.generateToken("testUsername");
         assertThrows(SignatureException.class, () -> jwtServiceWithAnotherKey.extractUsername(token));
     }
