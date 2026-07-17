@@ -33,7 +33,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Security filter chain")
 class SecurityFilterChainIntegrationTest {
 
-	private static final String ADMIN_USERNAME = "sa";
+	/**
+	 * Plaintext of the bcrypt hash configured as admin-password in application-test.yaml: the hash cannot be
+	 * reversed, so the pair must be kept in sync by hand.
+	 */
 	private static final String ADMIN_PASSWORD = "test";
 	private static final String PROTECTED_ENDPOINT = "/api/v1/requests";
 
@@ -65,7 +68,7 @@ class SecurityFilterChainIntegrationTest {
 	void protectedEndpoint_returns200_whenTokenIsValid() throws Exception {
 		mockMvc
 				.perform(get(PROTECTED_ENDPOINT)
-						.header(HttpHeaders.AUTHORIZATION, bearer(jwtService.generateToken(ADMIN_USERNAME))))
+						.header(HttpHeaders.AUTHORIZATION, bearer(jwtService.generateToken(securityProperties.adminUsername()))))
 				.andExpect(status().isOk());
 	}
 
@@ -112,7 +115,7 @@ class SecurityFilterChainIntegrationTest {
 		MvcResult login = mockMvc
 				.perform(post("/api/v1/auth/login")
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"username\":\"%s\",\"password\":\"%s\"}".formatted(ADMIN_USERNAME, ADMIN_PASSWORD)))
+						.content("{\"username\":\"%s\",\"password\":\"%s\"}".formatted(securityProperties.adminUsername(), ADMIN_PASSWORD)))
 				.andExpect(status().isOk())
 				.andReturn();
 
@@ -134,7 +137,7 @@ class SecurityFilterChainIntegrationTest {
 	void authenticatedRequest_createsNoSession() throws Exception {
 		MvcResult result = mockMvc
 				.perform(get(PROTECTED_ENDPOINT)
-						.header(HttpHeaders.AUTHORIZATION, bearer(jwtService.generateToken(ADMIN_USERNAME))))
+						.header(HttpHeaders.AUTHORIZATION, bearer(jwtService.generateToken(securityProperties.adminUsername()))))
 				.andExpect(status().isOk())
 				.andReturn();
 

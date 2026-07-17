@@ -1,6 +1,7 @@
 package com.luigimonteforte.conservationrequests.exception;
 
 import com.jayway.jsonpath.JsonPath;
+import com.luigimonteforte.conservationrequests.config.AppSecurityProperties;
 import com.luigimonteforte.conservationrequests.security.service.JwtService;
 import com.luigimonteforte.conservationrequests.service.RequestService;
 import org.junit.jupiter.api.DisplayName;
@@ -44,6 +45,9 @@ class ErrorContractIntegrationTest {
     @Autowired
     private JwtService jwtService;
 
+    @Autowired
+    private AppSecurityProperties securityProperties;
+
     @MockitoBean
     private RequestService requestService;
 
@@ -54,7 +58,7 @@ class ErrorContractIntegrationTest {
     }
 
     private String bearer() {
-        return "Bearer " + jwtService.generateToken("sa");
+        return "Bearer " + jwtService.generateToken(securityProperties.adminUsername());
     }
 
     private static void assertIsProblemJson(ResponseEntity<String> response) {
