@@ -8,12 +8,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Instant;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -25,6 +27,26 @@ class RequestRepositoryTest {
 
     @Autowired
     private EntityManager entityManager;
+
+    @Test
+    @DisplayName("the database rejects a second request with the same producerId and externalId, at save time")
+    void save_isRejected_whenProducerIdAndExternalIdAlreadyExist() {
+        requestRepository.save(request(1L, 100L));
+        entityManager.flush();
+
+        assertThrows(DataIntegrityViolationException.class, () -> requestRepository.save(request(1L, 100L)));
+    }
+
+    private Request request(Long producerId, Long externalId) {
+        return Request.builder()
+                .externalId(externalId)
+                .producerId(producerId)
+                .documentType("INVOICE")
+                .status(Status.RECEIVED)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
+    }
 
     @Test
     @DisplayName("saving a request cascades and persists its documents")
