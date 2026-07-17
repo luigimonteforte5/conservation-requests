@@ -13,7 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.time.Instant;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -50,7 +50,7 @@ class RequestRepositoryTest {
         entityManager.clear();
 
         Request reloaded = requestRepository.findById(saved.getId()).orElseThrow();
-        assertThat(reloaded.getDocuments()).hasSize(1);
-        assertThat(reloaded.getDocuments().getFirst().getFileName()).isEqualTo("file.pdf");
+        assertEquals(1, reloaded.getDocuments().size());
+        assertEquals("file.pdf", reloaded.getDocuments().getFirst().getFileName());
     }
 }

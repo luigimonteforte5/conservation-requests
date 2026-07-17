@@ -31,8 +31,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -56,6 +58,12 @@ class RequestServiceTest {
         return new DocumentDto(null, "file.pdf", "application/pdf", 1024L, "hash", Instant.now());
     }
 
+    private static void assertIsBetween(Instant actual, Instant start, Instant end) {
+        assertNotNull(actual);
+        assertTrue(!actual.isBefore(start) && !actual.isAfter(end),
+                () -> "expected %s to be between %s and %s".formatted(actual, start, end));
+    }
+
     @Test
     @DisplayName("createRequest saves and returns the mapped DTO when no duplicate exists")
     void createRequest_savesAndReturnsDto_whenNoDuplicateExists() {
@@ -71,7 +79,7 @@ class RequestServiceTest {
 
         RequestDto result = requestService.createRequest(createRequestDto);
 
-        assertThat(result).isEqualTo(expectedDto);
+        assertEquals(expectedDto, result);
         verify(requestRepository).save(mappedEntity);
     }
 
@@ -92,8 +100,8 @@ class RequestServiceTest {
         requestService.createRequest(createRequestDto);
         Instant after = Instant.now();
 
-        assertThat(mappedEntity.getCreatedAt()).isNotNull().isBetween(before, after);
-        assertThat(mappedEntity.getUpdatedAt()).isNotNull().isBetween(before, after);
+        assertIsBetween(mappedEntity.getCreatedAt(), before, after);
+        assertIsBetween(mappedEntity.getUpdatedAt(), before, after);
     }
 
     @Test
@@ -102,8 +110,7 @@ class RequestServiceTest {
         CreateRequestDto createRequestDto = new CreateRequestDto(1L, "INVOICE", 100L, List.of(sampleDocumentDto()));
         when(requestRepository.existsByExternalIdAndProducerId(100L, 1L)).thenReturn(true);
 
-        assertThatThrownBy(() -> requestService.createRequest(createRequestDto))
-                .isInstanceOf(DuplicateRequestException.class);
+        assertThrows(DuplicateRequestException.class, () -> requestService.createRequest(createRequestDto));
 
         verify(requestRepository, never()).save(any());
     }
@@ -116,7 +123,7 @@ class RequestServiceTest {
         when(requestRepository.findById(5L)).thenReturn(Optional.of(entity));
         when(requestMapper.toDto(entity)).thenReturn(dto);
 
-        assertThat(requestService.findById(5L)).isEqualTo(dto);
+        assertEquals(dto, requestService.findById(5L));
     }
 
     @Test
@@ -124,8 +131,7 @@ class RequestServiceTest {
     void findById_throwsResourceNotFoundException_whenMissing() {
         when(requestRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> requestService.findById(99L))
-                .isInstanceOf(ResourceNotFoundException.class);
+        assertThrows(ResourceNotFoundException.class, () -> requestService.findById(99L));
     }
 
     @Test
@@ -141,7 +147,7 @@ class RequestServiceTest {
 
         Page<RequestDto> result = requestService.getRequests(1L, Status.RECEIVED, pageable);
 
-        assertThat(result.getContent()).containsExactly(dto);
+        assertEquals(List.of(dto), result.getContent());
     }
 
     @ParameterizedTest(name = "{0} -> {1}")
@@ -158,8 +164,8 @@ class RequestServiceTest {
 
         RequestDto result = requestService.changeStatus(5L, to);
 
-        assertThat(result).isEqualTo(dto);
-        assertThat(entity.getStatus()).isEqualTo(to);
+        assertEquals(dto, result);
+        assertEquals(to, entity.getStatus());
     }
 
     @Test
@@ -178,8 +184,8 @@ class RequestServiceTest {
         requestService.changeStatus(5L, Status.VALIDATED);
         Instant after = Instant.now();
 
-        assertThat(entity.getCreatedAt()).isEqualTo(originalCreatedAt);
-        assertThat(entity.getUpdatedAt()).isNotNull().isBetween(before, after);
+        assertEquals(originalCreatedAt, entity.getCreatedAt());
+        assertIsBetween(entity.getUpdatedAt(), before, after);
     }
 
     static Stream<Arguments> legalTransitions() {
@@ -195,8 +201,7 @@ class RequestServiceTest {
     void changeStatus_throwsResourceNotFoundException_whenMissing() {
         when(requestRepository.findById(5L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> requestService.changeStatus(5L, Status.VALIDATED))
-                .isInstanceOf(ResourceNotFoundException.class);
+        assertThrows(ResourceNotFoundException.class, () -> requestService.changeStatus(5L, Status.VALIDATED));
     }
 
     @ParameterizedTest(name = "{0} -> {1}")
@@ -206,8 +211,7 @@ class RequestServiceTest {
         Request entity = Request.builder().id(5L).status(from).build();
         when(requestRepository.findById(5L)).thenReturn(Optional.of(entity));
 
-        assertThatThrownBy(() -> requestService.changeStatus(5L, to))
-                .isInstanceOf(InvalidStateTransitionException.class);
+        assertThrows(InvalidStateTransitionException.class, () -> requestService.changeStatus(5L, to));
 
         verify(requestRepository, never()).save(any());
     }

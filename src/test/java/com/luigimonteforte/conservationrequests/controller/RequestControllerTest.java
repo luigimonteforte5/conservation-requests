@@ -27,8 +27,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.Instant;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.endsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -80,7 +80,7 @@ class RequestControllerTest {
 
         ArgumentCaptor<CreateRequestDto> captor = ArgumentCaptor.forClass(CreateRequestDto.class);
         verify(requestService).createRequest(captor.capture());
-        assertThat(captor.getValue()).isEqualTo(createRequestDto);
+        assertEquals(createRequestDto, captor.getValue());
     }
 
     @Test
@@ -145,8 +145,8 @@ class RequestControllerTest {
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         verify(requestService).getRequests(eq(1L), eq(Status.RECEIVED), pageableCaptor.capture());
-        assertThat(pageableCaptor.getValue().getPageNumber()).isZero();
-        assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(10);
+        assertEquals(0, pageableCaptor.getValue().getPageNumber());
+        assertEquals(10, pageableCaptor.getValue().getPageSize());
     }
 
     @Test
