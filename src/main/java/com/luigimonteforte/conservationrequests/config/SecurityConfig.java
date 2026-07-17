@@ -3,6 +3,7 @@ package com.luigimonteforte.conservationrequests.config;
 import com.luigimonteforte.conservationrequests.security.filter.JwtAuthenticationFilter;
 import com.luigimonteforte.conservationrequests.security.service.JwtService;
 import com.luigimonteforte.conservationrequests.security.handler.JwtAuthenticationEntryPoint;
+import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,6 +55,7 @@ public class SecurityConfig {
 				.csrf(AbstractHttpConfigurer::disable)
 				.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(authorizeRequests -> authorizeRequests
+						.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
 						.requestMatchers("/api/v1/auth/login", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
 						.permitAll()
 						.anyRequest()
