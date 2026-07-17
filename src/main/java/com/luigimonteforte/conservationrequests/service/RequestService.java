@@ -29,8 +29,9 @@ public class RequestService {
     public RequestDto createRequest(CreateRequestDto createRequestDto) {
         checkIfRequestExists(createRequestDto);
         Request newRequest = requestMapper.toEntity(createRequestDto);
-        newRequest.setCreatedAt(Instant.now());
-        newRequest.setUpdatedAt(Instant.now());
+        Instant actualTime = Instant.now();
+        newRequest.setCreatedAt(actualTime);
+        newRequest.setUpdatedAt(actualTime);
         Request saved = requestRepository.save(newRequest);
         log.info("Created request {} for producerId={}, externalId={}", saved.getId(), saved.getProducerId(), saved.getExternalId());
         return requestMapper.toDto(saved);
