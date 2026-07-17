@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClient;
@@ -109,6 +110,22 @@ class ErrorContractIntegrationTest {
         assertIsProblemJson(response);
         assertFalse(response.getBody().contains(INTERNAL_MESSAGE),
                 () -> "the body must not carry the internal failure message, but was: " + response.getBody());
+    }
+
+    @Test
+    @DisplayName("answers a denied authorization with 403 instead of the masked 500 of the fallback")
+    void deniedAuthorization_answersWith403_insteadOfTheMasked500() {
+        when(requestService.findById(any())).thenThrow(new AccessDeniedException("Access Denied"));
+
+        ResponseEntity<String> response = client.get()
+                .uri(url("/api/v1/requests/1"))
+                .header(HttpHeaders.AUTHORIZATION, bearer())
+                .retrieve()
+                .onStatus(status -> true, (request, res) -> {
+                })
+                .toEntity(String.class);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.luigimonteforte.conservationrequests.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -51,9 +52,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 				.body(problem);
 	}
 
+	@ExceptionHandler(AccessDeniedException.class)
+	public void handleAccessDenied(AccessDeniedException ex) throws AccessDeniedException {
+		throw ex;
+	}
+
 	@Override
-	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest webRequest){
-		Map<String, List<String>> errors = ex.getBindingResult().getFieldErrors().stream().collect(Collectors.groupingBy(FieldError::getField, Collectors.mapping(FieldError::getDefaultMessage, Collectors.toList())));
+	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+			HttpHeaders headers, HttpStatusCode status, WebRequest webRequest) {
+		Map<String, List<String>> errors = ex
+				.getBindingResult()
+				.getFieldErrors()
+				.stream()
+				.collect(Collectors
+						.groupingBy(FieldError::getField,
+								Collectors.mapping(FieldError::getDefaultMessage, Collectors.toList())));
 		ProblemDetail body = ex.getBody();
 		body.setProperty("errors", errors);
 		return handleExceptionInternal(ex, body, headers, status, webRequest);
