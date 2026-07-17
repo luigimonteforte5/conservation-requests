@@ -2,17 +2,11 @@ spring:
   datasource:
     url: jdbc:h2:mem:conservation-requests;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
-    username: sa
-    password:
 
   jpa:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
-
-  security:
-    user:
-      password: test
 
   docker:
     compose:
@@ -20,6 +14,8 @@ spring:
 
 app:
   security:
-    jwt-secret: test-jwt-secret
+    jwt-secret: VUC0ZdHDb3orC7IMws28oVGBrdcL4YlEWdbB13zdWYK
+    admin-username: sa
+    admin-password: $2a$12$ObxTqLVMyw2pPx775TKVHe9bf707Vgtrvx5uwuqu.bofVmP7LPLFa
   encryption:
     key: test-encryption-key

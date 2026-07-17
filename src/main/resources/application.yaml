@@ -30,11 +30,6 @@ spring:
         order_updates: true
     show-sql: false
 
-  security:
-    user:
-      name: ${SECURITY_USER:admin}
-      password: ${SECURITY_PASSWORD}
-
 logging:
   level:
     root: INFO
@@ -56,6 +51,8 @@ app:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
     jwt-secret: ${JWT_SECRET}
     jwt-expiration: ${JWT_EXPIRATION:86400000}
+    admin-username: ${SECURITY_USER:admin}
+    admin-password: ${SECURITY_PASSWORD}
   encryption:
     algorithm: AES
     key: ${ENCRYPTION_KEY}
