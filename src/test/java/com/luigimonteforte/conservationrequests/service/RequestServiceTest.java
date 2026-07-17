@@ -221,7 +221,7 @@ class RequestServiceTest {
 		Request saved = Request.builder().id(5L).status(to).build();
 		RequestDto dto = new RequestDto(5L, null, null, null, to, null, null, null);
 
-		when(requestRepository.findById(5L)).thenReturn(Optional.of(entity));
+		when(requestRepository.findWithLockById(5L)).thenReturn(Optional.of(entity));
 		when(requestRepository.save(entity)).thenReturn(saved);
 		when(requestMapper.toDto(saved)).thenReturn(dto);
 
@@ -239,7 +239,7 @@ class RequestServiceTest {
 		Request saved = Request.builder().id(5L).status(Status.VALIDATED).build();
 		RequestDto dto = new RequestDto(5L, null, null, null, Status.VALIDATED, null, null, null);
 
-		when(requestRepository.findById(5L)).thenReturn(Optional.of(entity));
+		when(requestRepository.findWithLockById(5L)).thenReturn(Optional.of(entity));
 		when(requestRepository.save(entity)).thenReturn(saved);
 		when(requestMapper.toDto(saved)).thenReturn(dto);
 
@@ -251,6 +251,23 @@ class RequestServiceTest {
 		assertIsBetween(entity.getUpdatedAt(), before, after);
 	}
 
+	@Test
+	@DisplayName("changeStatus reads the request through the locking query, never through a plain read")
+	void changeStatus_readsThroughTheLockingQuery_neverThroughAPlainRead() {
+		Request entity = Request.builder().id(5L).status(Status.RECEIVED).build();
+		Request saved = Request.builder().id(5L).status(Status.VALIDATED).build();
+		RequestDto dto = new RequestDto(5L, null, null, null, Status.VALIDATED, null, null, null);
+
+		when(requestRepository.findWithLockById(5L)).thenReturn(Optional.of(entity));
+		when(requestRepository.save(entity)).thenReturn(saved);
+		when(requestMapper.toDto(saved)).thenReturn(dto);
+
+		requestService.changeStatus(5L, Status.VALIDATED);
+
+		verify(requestRepository).findWithLockById(5L);
+		verify(requestRepository, never()).findById(any());
+	}
+
 	static Stream<Arguments> legalTransitions() {
 		return Stream
 				.of(Arguments.of(Status.RECEIVED, Status.VALIDATED), Arguments.of(Status.RECEIVED, Status.REJECTED),
@@ -260,7 +277,7 @@ class RequestServiceTest {
 	@Test
 	@DisplayName("changeStatus throws ResourceNotFoundException when the id does not exist")
 	void changeStatus_throwsResourceNotFoundException_whenMissing() {
-		when(requestRepository.findById(5L)).thenReturn(Optional.empty());
+		when(requestRepository.findWithLockById(5L)).thenReturn(Optional.empty());
 
 		assertThrows(ResourceNotFoundException.class, () -> requestService.changeStatus(5L, Status.VALIDATED));
 	}
@@ -270,7 +287,7 @@ class RequestServiceTest {
 	@DisplayName("changeStatus throws InvalidStateTransitionException for every illegal transition and does not save")
 	void changeStatus_throwsInvalidStateTransitionException_forIllegalTransitions(Status from, Status to) {
 		Request entity = Request.builder().id(5L).status(from).build();
-		when(requestRepository.findById(5L)).thenReturn(Optional.of(entity));
+		when(requestRepository.findWithLockById(5L)).thenReturn(Optional.of(entity));
 
 		assertThrows(InvalidStateTransitionException.class, () -> requestService.changeStatus(5L, to));
 

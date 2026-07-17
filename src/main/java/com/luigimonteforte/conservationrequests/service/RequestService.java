@@ -10,6 +10,7 @@ import com.luigimonteforte.conservationrequests.model.CreateRequestDto;
 import com.luigimonteforte.conservationrequests.model.RequestDto;
 import com.luigimonteforte.conservationrequests.repository.RequestRepository;
 import com.luigimonteforte.conservationrequests.utils.RequestSpecification;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -64,9 +65,10 @@ public class RequestService {
 								String.format("No Resource found with id %d", id))));
 	}
 
+	@Transactional
 	public RequestDto changeStatus(Long id, Status target) {
 		Request found = requestRepository
-				.findById(id)
+				.findWithLockById(id)
 				.orElseThrow(() -> new ResourceNotFoundException(String.format("No Resource found with id %d", id)));
 		Status current = found.getStatus();
 		if (!current.canTransitionTo(target)) {
