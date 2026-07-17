@@ -18,6 +18,12 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+	@ExceptionHandler(Exception.class)
+	public ProblemDetail handleGenericException(Exception e) {
+		log.error("Unexpected error in unhandled exception", e);
+		return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error occurred");
+	}
+
 	@ExceptionHandler(DuplicateRequestException.class)
 	public ProblemDetail handleDuplicateRequest(DuplicateRequestException ex) {
 		log.warn("Duplicate request rejected: {}", ex.getMessage());
