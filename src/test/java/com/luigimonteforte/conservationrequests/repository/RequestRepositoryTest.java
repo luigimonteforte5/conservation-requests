@@ -16,6 +16,8 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest
@@ -44,8 +46,6 @@ class RequestRepositoryTest {
                 .producerId(producerId)
                 .documentType("INVOICE")
                 .status(Status.RECEIVED)
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
                 .build();
     }
 
@@ -87,5 +87,30 @@ class RequestRepositoryTest {
         Request reloaded = requestRepository.findById(saved.getId()).orElseThrow();
         assertEquals(1, reloaded.getDocuments().size());
         assertEquals("file.pdf", reloaded.getDocuments().getFirst().getFileName());
+    }
+
+    @Test
+    @DisplayName("Hibernate stamps createdAt and updatedAt when a request is first saved")
+    void save_stampsCreatedAtAndUpdatedAt() {
+        Request saved = requestRepository.save(request(1L, 100L));
+        entityManager.flush();
+
+        assertNotNull(saved.getCreatedAt());
+        assertNotNull(saved.getUpdatedAt());
+    }
+
+    @Test
+    @DisplayName("updating a request refreshes updatedAt while leaving createdAt untouched")
+    void update_refreshesUpdatedAt_andKeepsCreatedAt() {
+        Request saved = requestRepository.save(request(1L, 100L));
+        entityManager.flush();
+        Instant createdAt = saved.getCreatedAt();
+
+        saved.setStatus(Status.VALIDATED);
+        entityManager.flush();
+
+        assertEquals(createdAt, saved.getCreatedAt());
+        assertNotNull(saved.getUpdatedAt());
+        assertFalse(saved.getUpdatedAt().isBefore(createdAt));
     }
 }

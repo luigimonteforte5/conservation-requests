@@ -10,7 +10,6 @@ import com.luigimonteforte.conservationrequests.model.CreateRequestDto;
 import com.luigimonteforte.conservationrequests.model.RequestDto;
 import com.luigimonteforte.conservationrequests.repository.RequestRepository;
 import com.luigimonteforte.conservationrequests.utils.RequestSpecification;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -19,8 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -36,13 +33,9 @@ public class RequestService {
 	public RequestDto createRequest(CreateRequestDto createRequestDto) {
 		checkIfRequestExists(createRequestDto);
 		Request newRequest = requestMapper.toEntity(createRequestDto);
-		Instant actualTime = Instant.now();
-		newRequest.setCreatedAt(actualTime);
-		newRequest.setUpdatedAt(actualTime);
 		try {
 			Request saved = requestRepository.save(newRequest);
-			log
-					.info("Created request {} for producerId={}, externalId={}", saved.getId(), saved.getProducerId(),
+			log.info("Created request {} for producerId={}, externalId={}", saved.getId(), saved.getProducerId(),
 							saved.getExternalId());
 			return requestMapper.toDto(saved);
 		} catch (DataIntegrityViolationException e) {
@@ -66,7 +59,6 @@ public class RequestService {
 		Status current = found.getStatus();
 		checkTransitionIsAllowed(id, current, newStatus);
 		found.setStatus(newStatus);
-		found.setUpdatedAt(Instant.now());
 		Request updated = requestRepository.save(found);
 		log.info("Request with id {} has been updated from {} to {}", id, current, newStatus);
 		return requestMapper.toDto(updated);
