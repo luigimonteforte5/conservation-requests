@@ -7,9 +7,6 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
-public record CreateRequestDto(
-        @NotNull Long producerId,
-        @NotBlank String documentType,
-        @NotNull Long externalId,
-        @NotNull @NotEmpty @Valid List<DocumentDto> documents) {
+public record CreateRequestDto(@NotNull Long producerId, @NotBlank String documentType, @NotNull Long externalId,
+		@NotNull @NotEmpty List<@Valid DocumentDto> documents) {
 }
