@@ -25,6 +25,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.hamcrest.Matchers.endsWith;
@@ -92,6 +93,28 @@ class RequestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidDto)))
                 .andExpect(status().isBadRequest());
+
+        verify(requestService, never()).createRequest(any());
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/requests validates each document, not just the list of documents")
+    void createRequest_returns400_whenADocumentIsInvalid() throws Exception {
+        DocumentDto invalidDocument = new DocumentDto(null, "  ", "", -1L, "",
+                Instant.now().plus(1, ChronoUnit.DAYS));
+        CreateRequestDto createRequestDto = new CreateRequestDto(1L, "INVOICE", 100L, List.of(invalidDocument));
+
+        mockMvc.perform(post("/api/v1/requests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequestDto)))
+                .andExpect(status().isBadRequest())
+                // the violations must be reported per element, which only happens when
+                // @Valid cascades to the type argument rather than to the list itself
+                .andExpect(jsonPath("$.errors['documents[0].fileName']").exists())
+                .andExpect(jsonPath("$.errors['documents[0].mimeType']").exists())
+                .andExpect(jsonPath("$.errors['documents[0].fileSize']").exists())
+                .andExpect(jsonPath("$.errors['documents[0].hash']").exists())
+                .andExpect(jsonPath("$.errors['documents[0].documentDate']").exists());
 
         verify(requestService, never()).createRequest(any());
     }
