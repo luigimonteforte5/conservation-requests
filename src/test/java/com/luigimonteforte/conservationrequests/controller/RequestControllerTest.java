@@ -141,7 +141,7 @@ class RequestControllerTest {
                         .param("status", "RECEIVED"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(10))
-                .andExpect(jsonPath("$.totalElements").value(1));
+                .andExpect(jsonPath("$.page.totalElements").value(1));
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         verify(requestService).getRequests(eq(1L), eq(Status.RECEIVED), pageableCaptor.capture());
@@ -168,6 +168,28 @@ class RequestControllerTest {
         mockMvc.perform(get("/api/v1/requests"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isEmpty());
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/requests exposes pagination metadata under 'page', not as internals of PageImpl")
+    void getRequests_serializesPaginationMetadata_asAStableContract() throws Exception {
+        Pageable pageable = PageRequest.of(1, 5);
+        Page<RequestDto> page = new PageImpl<>(List.of(sampleRequestDto(10L, Status.RECEIVED)), pageable, 11);
+        when(requestService.getRequests(isNull(), isNull(), any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/v1/requests").param("page", "1").param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(10))
+                .andExpect(jsonPath("$.page.size").value(5))
+                .andExpect(jsonPath("$.page.number").value(1))
+                .andExpect(jsonPath("$.page.totalElements").value(11))
+                .andExpect(jsonPath("$.page.totalPages").value(3))
+                // the internals of PageImpl and Sort must not leak into the payload
+                .andExpect(jsonPath("$.pageable").doesNotExist())
+                .andExpect(jsonPath("$.sort").doesNotExist())
+                .andExpect(jsonPath("$.totalElements").doesNotExist())
+                .andExpect(jsonPath("$.numberOfElements").doesNotExist())
+                .andExpect(jsonPath("$.empty").doesNotExist());
     }
 
     @Test

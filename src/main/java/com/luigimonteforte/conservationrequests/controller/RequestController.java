@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -32,11 +33,12 @@ public class RequestController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<RequestDto>> getRequests(
+    public ResponseEntity<PagedModel<RequestDto>> getRequests(
             @RequestParam(required = false) Long producerId,
             @RequestParam(required = false) Status status,
             @PageableDefault(size = 10) Pageable pageable) {
-        return ResponseEntity.ok(requestService.getRequests(producerId, status, pageable));
+        Page<RequestDto> page = requestService.getRequests(producerId, status, pageable);
+        return ResponseEntity.ok(new PagedModel<>(page));
     }
 
     @GetMapping("/{id}")
