@@ -1,5 +1,6 @@
 package com.luigimonteforte.conservationrequests.controller;
 
+import com.luigimonteforte.conservationrequests.controller.openapi.RequestApi;
 import com.luigimonteforte.conservationrequests.entity.Status;
 import com.luigimonteforte.conservationrequests.model.CreateRequestDto;
 import com.luigimonteforte.conservationrequests.model.RequestDto;
@@ -19,9 +20,10 @@ import java.net.URI;
 @RestController
 @RequestMapping("/api/v1/requests")
 @RequiredArgsConstructor
-public class RequestController {
+public class RequestController implements RequestApi {
     private final RequestService requestService;
 
+    @Override
     @PostMapping()
     public ResponseEntity<RequestDto> createRequest(@RequestBody @Valid CreateRequestDto createRequestDto) {
         RequestDto created = requestService.createRequest(createRequestDto);
@@ -32,6 +34,7 @@ public class RequestController {
         return ResponseEntity.created(location).body(created);
     }
 
+    @Override
     @GetMapping
     public ResponseEntity<PagedModel<RequestDto>> getRequests(
             @RequestParam(required = false) Long producerId,
@@ -41,21 +44,25 @@ public class RequestController {
         return ResponseEntity.ok(new PagedModel<>(page));
     }
 
+    @Override
     @GetMapping("/{id}")
     public ResponseEntity<RequestDto> getRequest(@PathVariable Long id) {
         return ResponseEntity.ok(requestService.findById(id));
     }
 
+    @Override
     @PatchMapping("/{id}/validate")
     public ResponseEntity<RequestDto> validateRequest(@PathVariable Long id) {
         return ResponseEntity.ok(requestService.changeStatus(id, Status.VALIDATED));
     }
 
+    @Override
     @PatchMapping("/{id}/reject")
     public ResponseEntity<RequestDto> rejectRequest(@PathVariable Long id) {
         return ResponseEntity.ok(requestService.changeStatus(id, Status.REJECTED));
     }
 
+    @Override
     @PatchMapping("/{id}/complete")
     public ResponseEntity<RequestDto> completeRequest(@PathVariable Long id) {
         return ResponseEntity.ok(requestService.changeStatus(id, Status.COMPLETED));
