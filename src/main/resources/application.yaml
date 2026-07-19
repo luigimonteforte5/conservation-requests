@@ -47,8 +47,6 @@ logging:
 # Custom Application Configuration
 app:
   security:
-    enable-cors: ${CORS_ENABLED:false}
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
     jwt-secret: ${JWT_SECRET}
     jwt-expiration: ${JWT_EXPIRATION:86400000}
     admin-username: ${SECURITY_USER:admin}

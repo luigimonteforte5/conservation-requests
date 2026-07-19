@@ -9,7 +9,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -20,7 +19,7 @@ class JwtServiceTest {
     private static final String ANOTHER_TEST_KEY = "not-a-secret-a-different-test-only-signing-key-42";
 
     private JwtService jwtServiceWith(Duration duration, String key) {
-        return new JwtService(new AppSecurityProperties(false, List.of(), key, duration, "unused", "unused"));
+        return new JwtService(new AppSecurityProperties(key, duration, "unused", "unused"));
     }
 
     private final JwtService testService = jwtServiceWith(Duration.ofMinutes(5), TEST_KEY);
