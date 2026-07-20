@@ -2,6 +2,7 @@ package com.luigimonteforte.conservationrequests.service;
 
 import com.luigimonteforte.conservationrequests.entity.Request;
 import com.luigimonteforte.conservationrequests.entity.Status;
+import com.luigimonteforte.conservationrequests.event.RequestCompletedEvent;
 import com.luigimonteforte.conservationrequests.exception.DuplicateRequestException;
 import com.luigimonteforte.conservationrequests.exception.InvalidStateTransitionException;
 import com.luigimonteforte.conservationrequests.exception.ResourceNotFoundException;
@@ -12,6 +13,7 @@ import com.luigimonteforte.conservationrequests.repository.RequestRepository;
 import com.luigimonteforte.conservationrequests.utils.RequestSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class RequestService {
 	private final RequestRepository requestRepository;
 	private final RequestMapper requestMapper;
+	private final ApplicationEventPublisher applicationEventPublisher;
 
 	public RequestDto findById(Long id) {
 		return requestMapper.toDto(getRequestOrThrow(id));
@@ -61,7 +64,21 @@ public class RequestService {
 		found.setStatus(newStatus);
 		Request updated = requestRepository.save(found);
 		log.info("Request with id {} has been updated from {} to {}", id, current, newStatus);
+		publishCompletionEvent(newStatus, updated, current);
 		return requestMapper.toDto(updated);
+	}
+
+	private void publishCompletionEvent(Status newStatus, Request updated, Status oldStatus) {
+		if (newStatus == Status.COMPLETED) {
+			applicationEventPublisher
+					.publishEvent(RequestCompletedEvent
+							.builder()
+							.requestId(updated.getId())
+							.producerId(updated.getProducerId())
+							.externalId(updated.getExternalId())
+							.previousStatus(oldStatus)
+							.build());
+		}
 	}
 
 	private void checkIfRequestExists(CreateRequestDto requestDto) {
