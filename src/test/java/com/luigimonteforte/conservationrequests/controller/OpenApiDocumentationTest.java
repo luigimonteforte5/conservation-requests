@@ -144,6 +144,30 @@ class OpenApiDocumentationTest {
                         + "but was " + loginRequirement);
     }
 
+    @Test
+    @DisplayName("documents login, including the 401 that a wrong password produces")
+    void documents_theLoginContract() {
+        assertEquals("Log in", JsonPath.read(apiDocs, "$.paths['/api/v1/auth/login'].post.summary"));
+
+        Map<String, Object> rejected = JsonPath.read(apiDocs,
+                "$.paths['/api/v1/auth/login'].post.responses['401'].content['application/problem+json'].example");
+        assertEquals("Invalid username or password", rejected.get("detail"),
+                "the documented detail is the one AuthService throws, and it must stay vague: naming the wrong "
+                        + "half would confirm to an attacker that the account exists");
+
+        assertNotNull(JsonPath.read(apiDocs, "$.paths['/api/v1/auth/login'].post.responses['400']"));
+        assertEquals("Bearer", JsonPath.read(apiDocs, "$.paths['/api/v1/auth/login'].post"
+                + ".responses['401'].headers['WWW-Authenticate'].schema.example"));
+    }
+
+    @Test
+    @DisplayName("never prints a real credential in the login example")
+    void loginExample_carriesNoRealSecret() {
+        Map<String, Object> schema = JsonPath.read(apiDocs, "$.components.schemas.LoginRequest.properties.password");
+        assertEquals("password", schema.get("format"),
+                "the field must be declared as a password so the UI masks it rather than echoing what is typed");
+    }
+
     private String documentedStatusAfter(String transition) {
         return JsonPath.read(apiDocs, "$.paths['/api/v1/requests/{id}/" + transition
                 + "'].patch.responses['200'].content['application/json'].example.status");
