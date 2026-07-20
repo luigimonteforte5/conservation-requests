@@ -45,7 +45,6 @@ final class ApiExamples {
 
     static final String VALIDATION_ERROR = """
             {
-              "type": "about:blank",
               "title": "Bad Request",
               "status": 400,
               "detail": "Invalid request content.",
@@ -58,7 +57,6 @@ final class ApiExamples {
 
     static final String DUPLICATE_ERROR = """
             {
-              "type": "about:blank",
               "title": "Conflict",
               "status": 409,
               "detail": "Request with externalId 10001 and producerId 7 already exists",
@@ -67,7 +65,6 @@ final class ApiExamples {
 
     static final String TRANSITION_ERROR = """
             {
-              "type": "about:blank",
               "title": "Conflict",
               "status": 409,
               "detail": "Cannot transition request 42 from COMPLETED to VALIDATED",
@@ -76,7 +73,6 @@ final class ApiExamples {
 
     static final String NOT_FOUND_ERROR = """
             {
-              "type": "about:blank",
               "title": "Not Found",
               "status": 404,
               "detail": "No Resource found with id 99",
@@ -85,7 +81,6 @@ final class ApiExamples {
 
     static final String UNAUTHORIZED_ERROR = """
             {
-              "type": "about:blank",
               "title": "Unauthorized",
               "status": 401,
               "detail": "Authentication required",
@@ -94,7 +89,6 @@ final class ApiExamples {
 
     static final String BAD_FILTER_ERROR = """
             {
-              "type": "about:blank",
               "title": "Bad Request",
               "status": 400,
               "detail": "Failed to convert 'status' with value: 'NOT_A_STATUS'",

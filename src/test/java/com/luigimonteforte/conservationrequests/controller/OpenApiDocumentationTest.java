@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -102,6 +103,10 @@ class OpenApiDocumentationTest {
         Map<String, Object> conflict = JsonPath.read(apiDocs,
                 "$.paths['/api/v1/requests/{id}/validate'].patch.responses['409'].content['application/problem+json'].example");
         assertEquals("Conflict", conflict.get("title"));
+
+        assertFalse(notFound.containsKey("type"),
+                "the serialized ProblemDetail omits 'type' while it stays the default about:blank, so an example "
+                        + "that shows it would describe a field the caller never receives");
     }
 
     @Test
