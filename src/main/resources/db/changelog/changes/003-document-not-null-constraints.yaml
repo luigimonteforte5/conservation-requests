@@ -1,0 +1,31 @@
+## Every column here is one the API already requires: fileName, mimeType, fileSize, hash and documentDate are
+## validated on the input DTO, and a document without a request is an orphan the domain has no meaning for.
+databaseChangeLog:
+  - changeSet:
+      id: 003-document-not-null-constraints
+      author: Luigi
+      changes:
+        - addNotNullConstraint:
+            tableName: document
+            columnName: file_name
+            columnDataType: VARCHAR(255)
+        - addNotNullConstraint:
+            tableName: document
+            columnName: mime_type
+            columnDataType: VARCHAR(255)
+        - addNotNullConstraint:
+            tableName: document
+            columnName: file_size
+            columnDataType: BIGINT
+        - addNotNullConstraint:
+            tableName: document
+            columnName: hash
+            columnDataType: VARCHAR(255)
+        - addNotNullConstraint:
+            tableName: document
+            columnName: document_date
+            columnDataType: TIMESTAMP WITH TIME ZONE
+        - addNotNullConstraint:
+            tableName: document
+            columnName: request_id
+            columnDataType: BIGINT

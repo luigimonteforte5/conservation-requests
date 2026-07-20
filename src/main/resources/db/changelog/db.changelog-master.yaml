@@ -5,3 +5,9 @@ databaseChangeLog:
   - include:
       file: changes/001-initial-schema.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changes/002-request-not-null-constraints.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/003-document-not-null-constraints.yaml
+      relativeToChangelogFile: true

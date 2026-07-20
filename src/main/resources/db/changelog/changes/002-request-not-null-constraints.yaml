@@ -1,0 +1,27 @@
+## The initial schema left everything but the identifiers nullable, so a request could be stored without a
+## status and every later transition would fail on it. These constraints put the database in agreement with
+## the validation rules the API already enforces.
+databaseChangeLog:
+  - changeSet:
+      id: 002-request-not-null-constraints
+      author: Luigi
+      changes:
+        - addNotNullConstraint:
+            tableName: request
+            columnName: status
+            columnDataType: VARCHAR(255)
+            # Rows written before the status was assigned would block the constraint; they are requests that
+            # were only ever received, so that is the status they get.
+            defaultNullValue: RECEIVED
+        - addNotNullConstraint:
+            tableName: request
+            columnName: document_type
+            columnDataType: VARCHAR(255)
+        - addNotNullConstraint:
+            tableName: request
+            columnName: created_at
+            columnDataType: TIMESTAMP WITH TIME ZONE
+        - addNotNullConstraint:
+            tableName: request
+            columnName: updated_at
+            columnDataType: TIMESTAMP WITH TIME ZONE
