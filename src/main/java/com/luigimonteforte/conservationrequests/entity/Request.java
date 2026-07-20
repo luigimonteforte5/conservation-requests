@@ -33,7 +33,8 @@ public class Request {
     private String documentType;
 
     @Enumerated(EnumType.STRING)
-    private Status status;
+    @Builder.Default
+    private Status status = Status.RECEIVED;
 
     @CreationTimestamp
     private Instant createdAt;

@@ -90,6 +90,28 @@ class RequestRepositoryTest {
     }
 
     @Test
+    @DisplayName("a request saved without an explicit status is stored as RECEIVED")
+    void save_defaultsStatusToReceived() {
+        // Deliberately not using the request(...) helper: it passes RECEIVED in, which is exactly what hid the
+        // bug this test exists for. Nothing on the creation path sets the status -- CreateRequestDto does not
+        // carry one and the mapper leaves the field alone -- so the entity default is what decides it.
+        Request withoutStatus = Request.builder()
+                .externalId(100L)
+                .producerId(1L)
+                .documentType("INVOICE")
+                .build();
+
+        Request saved = requestRepository.save(withoutStatus);
+        entityManager.flush();
+        entityManager.clear();
+
+        Request reloaded = requestRepository.findById(saved.getId()).orElseThrow();
+        assertEquals(Status.RECEIVED, reloaded.getStatus(),
+                "a request that reaches the system has been received and nothing more; without this default it "
+                        + "is stored with no status at all and every later transition fails on it");
+    }
+
+    @Test
     @DisplayName("Hibernate stamps createdAt and updatedAt when a request is first saved")
     void save_stampsCreatedAtAndUpdatedAt() {
         Request saved = requestRepository.save(request(1L, 100L));
