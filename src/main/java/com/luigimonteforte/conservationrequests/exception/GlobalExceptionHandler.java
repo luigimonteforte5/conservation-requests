@@ -1,5 +1,6 @@
 package com.luigimonteforte.conservationrequests.exception;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.security.access.AccessDeniedException;
@@ -20,8 +21,10 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@ExceptionHandler(Exception.class)
-	public ProblemDetail handleGenericException(Exception e) {
-		log.error("Unexpected error in unhandled exception", e);
+	public ProblemDetail handleGenericException(Exception e, HttpServletRequest request) {
+		// The response deliberately says nothing about what went wrong, so this log is the only record of it.
+		// Naming the endpoint spares whoever reads it from correlating a bare stack trace against access logs.
+		log.error("Unexpected error while handling {} {}", request.getMethod(), request.getRequestURI(), e);
 		return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error occurred");
 	}
 

@@ -2,6 +2,7 @@ package com.luigimonteforte.conservationrequests.security.filter;
 
 import com.luigimonteforte.conservationrequests.security.service.JwtService;
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,8 +37,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (!token.isBlank() && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 authenticate(resolveUser(token), request);
+            } catch (SignatureException e) {
+                // A signature that does not verify is not an expired session or a typo: the token was built
+                // against a different key, so someone is presenting one they forged. Kept above the general
+                // catch, which would otherwise swallow it into debug and hide it in production.
+                log.warn("Rejected JWT with an invalid signature on {} {}: {}", request.getMethod(),
+                        request.getRequestURI(), e.getMessage());
             } catch (JwtException | AuthenticationException e) {
-                log.debug("Rejected JWT: {}", e.getMessage());
+                // Expired or malformed tokens are ordinary traffic; at warn they would drown the line above.
+                log.debug("Rejected JWT on {} {}: {}", request.getMethod(), request.getRequestURI(), e.getMessage());
             }
         }
         filterChain.doFilter(request, response);
