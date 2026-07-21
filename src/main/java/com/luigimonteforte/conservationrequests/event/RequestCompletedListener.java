@@ -7,7 +7,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @Slf4j
-public class EventCompletedListener {
+public class RequestCompletedListener {
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void onRequestCompletedEvent(RequestCompletedEvent event) {
 		log.info("Request {} completed and committed (producerId={}, externalId={}, from {})", event.requestId(),
