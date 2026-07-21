@@ -9,7 +9,9 @@ import com.luigimonteforte.conservationrequests.exception.ResourceNotFoundExcept
 import com.luigimonteforte.conservationrequests.model.CreateRequestDto;
 import com.luigimonteforte.conservationrequests.model.DocumentDto;
 import com.luigimonteforte.conservationrequests.model.RequestDto;
+import com.luigimonteforte.conservationrequests.model.RequestStatusHistoryDto;
 import com.luigimonteforte.conservationrequests.service.RequestService;
+import com.luigimonteforte.conservationrequests.service.RequestStatusHistoryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -53,6 +55,9 @@ class RequestControllerTest {
 
     @MockitoBean
     private RequestService requestService;
+
+    @MockitoBean
+    private RequestStatusHistoryService requestStatusHistoryService;
 
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
@@ -262,6 +267,32 @@ class RequestControllerTest {
                 .thenThrow(new ResourceNotFoundException("No Resource found with id 99"));
 
         mockMvc.perform(patch("/api/v1/requests/{id}/validate", 99L))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/requests/{id}/history returns 200 with the history oldest-first")
+    void getRequestStatusHistory_returns200_withHistory() throws Exception {
+        Instant when = Instant.parse("2024-01-01T00:00:00Z");
+        when(requestStatusHistoryService.findByRequest(10L)).thenReturn(List.of(
+                new RequestStatusHistoryDto(null, Status.RECEIVED, when),
+                new RequestStatusHistoryDto(Status.RECEIVED, Status.VALIDATED, when)));
+
+        mockMvc.perform(get("/api/v1/requests/{id}/history", 10L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].toStatus").value("RECEIVED"))
+                .andExpect(jsonPath("$[1].fromStatus").value("RECEIVED"))
+                .andExpect(jsonPath("$[1].toStatus").value("VALIDATED"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/requests/{id}/history returns 404 when the request does not exist")
+    void getRequestStatusHistory_returns404_whenMissing() throws Exception {
+        when(requestStatusHistoryService.findByRequest(99L))
+                .thenThrow(new ResourceNotFoundException("No Resource found with id 99"));
+
+        mockMvc.perform(get("/api/v1/requests/{id}/history", 99L))
                 .andExpect(status().isNotFound());
     }
 }

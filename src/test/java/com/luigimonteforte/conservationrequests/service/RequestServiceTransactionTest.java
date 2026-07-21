@@ -29,6 +29,11 @@ class RequestServiceTransactionTest {
     @MockitoBean
     private RequestRepository requestRepository;
 
+    // The request read here is a mock that was never persisted, so the real history writer would fail the FK on
+    // its request_id. This test is about the transaction boundary, not the audit trail, so the writer is stubbed out.
+    @MockitoBean
+    private RequestStatusHistoryService requestStatusHistoryService;
+
     @Test
     @DisplayName("changeStatus runs inside a transaction, so the row lock it takes survives until the write")
     void changeStatus_runsInsideATransaction_soTheRowLockSurvivesUntilTheWrite() {

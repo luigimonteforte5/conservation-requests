@@ -4,7 +4,9 @@ import com.luigimonteforte.conservationrequests.controller.openapi.RequestApi;
 import com.luigimonteforte.conservationrequests.entity.Status;
 import com.luigimonteforte.conservationrequests.model.CreateRequestDto;
 import com.luigimonteforte.conservationrequests.model.RequestDto;
+import com.luigimonteforte.conservationrequests.model.RequestStatusHistoryDto;
 import com.luigimonteforte.conservationrequests.service.RequestService;
+import com.luigimonteforte.conservationrequests.service.RequestStatusHistoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,12 +18,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/requests")
 @RequiredArgsConstructor
 public class RequestController implements RequestApi {
     private final RequestService requestService;
+    private final RequestStatusHistoryService requestStatusHistoryService;
 
     @Override
     @PostMapping()
@@ -66,5 +70,11 @@ public class RequestController implements RequestApi {
     @PatchMapping("/{id}/complete")
     public ResponseEntity<RequestDto> completeRequest(@PathVariable Long id) {
         return ResponseEntity.ok(requestService.changeStatus(id, Status.COMPLETED));
+    }
+
+    @Override
+    @GetMapping("/{id}/history")
+    public ResponseEntity<List<RequestStatusHistoryDto>> getRequestStatusHistory(@PathVariable Long id) {
+        return ResponseEntity.ok(requestStatusHistoryService.findByRequest(id));
     }
 }

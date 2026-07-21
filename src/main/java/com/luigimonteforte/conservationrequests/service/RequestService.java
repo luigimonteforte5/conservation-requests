@@ -27,24 +27,29 @@ import org.springframework.transaction.annotation.Transactional;
 public class RequestService {
 	private final RequestRepository requestRepository;
 	private final RequestMapper requestMapper;
+	private final RequestStatusHistoryService requestStatusHistoryService;
 	private final ApplicationEventPublisher applicationEventPublisher;
 
 	public RequestDto findById(Long id) {
 		return requestMapper.toDto(getRequestOrThrow(id));
 	}
 
+	@Transactional
 	public RequestDto createRequest(CreateRequestDto createRequestDto) {
 		checkIfRequestExists(createRequestDto);
 		Request newRequest = requestMapper.toEntity(createRequestDto);
+		Request saved;
 		try {
-			Request saved = requestRepository.save(newRequest);
+			 saved = requestRepository.save(newRequest);
 			log.info("Created request {} for producerId={}, externalId={}", saved.getId(), saved.getProducerId(),
 							saved.getExternalId());
-			return requestMapper.toDto(saved);
+
 		} catch (DataIntegrityViolationException e) {
 			throw new DuplicateRequestException(
 					duplicateMessage(createRequestDto.producerId(), createRequestDto.externalId()), e);
 		}
+		requestStatusHistoryService.recordHistory(saved, null, saved.getStatus());
+		return requestMapper.toDto(saved);
 	}
 
 	public Page<RequestDto> getRequests(Long producerId, Status status, Pageable pageable) {
@@ -63,6 +68,7 @@ public class RequestService {
 		checkTransitionIsAllowed(id, current, newStatus);
 		found.setStatus(newStatus);
 		Request updated = requestRepository.save(found);
+		requestStatusHistoryService.recordHistory(updated, current, newStatus);
 		log.info("Request with id {} has been updated from {} to {}", id, current, newStatus);
 		publishCompletionEvent(newStatus, updated, current);
 		return requestMapper.toDto(updated);

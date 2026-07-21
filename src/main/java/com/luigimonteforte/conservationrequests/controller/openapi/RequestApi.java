@@ -3,7 +3,9 @@ package com.luigimonteforte.conservationrequests.controller.openapi;
 import com.luigimonteforte.conservationrequests.entity.Status;
 import com.luigimonteforte.conservationrequests.model.CreateRequestDto;
 import com.luigimonteforte.conservationrequests.model.RequestDto;
+import com.luigimonteforte.conservationrequests.model.RequestStatusHistoryDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -15,6 +17,8 @@ import org.springframework.data.web.PagedModel;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+
+import java.util.List;
 
 /**
  * The published contract of /api/v1/requests: what each endpoint promises,
@@ -70,4 +74,11 @@ public interface RequestApi {
 	@InvalidTransitionResponse
 	@UnauthorizedResponse
 	ResponseEntity<RequestDto> completeRequest(@Schema(example = "42") Long id);
+
+	@Operation(summary = "Get a request's status history", description = "Returns the audit trail of a request's status changes, oldest first. "
+			+ "The first entry records the request's arrival (from null to RECEIVED); every later entry records one transition.")
+	@ApiResponse(responseCode = "200", description = "The status history, oldest first", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = RequestStatusHistoryDto.class))))
+	@NotFoundResponse
+	@UnauthorizedResponse
+	ResponseEntity<List<RequestStatusHistoryDto>> getRequestStatusHistory(@Schema(example = "42") Long id);
 }

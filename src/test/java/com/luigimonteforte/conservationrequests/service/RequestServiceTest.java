@@ -55,6 +55,9 @@ class RequestServiceTest {
 	@Mock
 	private ApplicationEventPublisher applicationEventPublisher;
 
+	@Mock
+	private RequestStatusHistoryService requestStatusHistoryService;
+
 	@InjectMocks
 	private RequestService requestService;
 
@@ -86,6 +89,29 @@ class RequestServiceTest {
 
 		assertEquals(expectedDto, result);
 		verify(requestRepository).save(mappedEntity);
+	}
+
+	@Test
+	@DisplayName("createRequest records the request's arrival in the history, from no status to RECEIVED")
+	void createRequest_recordsInitialHistory() {
+		CreateRequestDto createRequestDto = new CreateRequestDto(1L, "INVOICE", 100L, List.of(sampleDocumentDto()));
+		Request mappedEntity = Request.builder().externalId(100L).producerId(1L).documentType("INVOICE").build();
+		Request savedEntity = Request
+				.builder()
+				.id(10L)
+				.externalId(100L)
+				.producerId(1L)
+				.documentType("INVOICE")
+				.status(Status.RECEIVED)
+				.build();
+
+		when(requestRepository.existsByExternalIdAndProducerId(100L, 1L)).thenReturn(false);
+		when(requestMapper.toEntity(createRequestDto)).thenReturn(mappedEntity);
+		when(requestRepository.save(mappedEntity)).thenReturn(savedEntity);
+
+		requestService.createRequest(createRequestDto);
+
+		verify(requestStatusHistoryService).recordHistory(savedEntity, null, Status.RECEIVED);
 	}
 
 	@Test
@@ -221,6 +247,23 @@ class RequestServiceTest {
 
 		verify(requestRepository).findWithLockById(5L);
 		verify(requestRepository, never()).findById(any());
+	}
+
+	@Test
+	@DisplayName("changeStatus records the transition with the status captured before the change, not the new one")
+	void changeStatus_recordsTransition_withThePreviousStatus() {
+		Request entity = Request.builder().id(5L).status(Status.RECEIVED).build();
+		Request saved = Request.builder().id(5L).status(Status.VALIDATED).build();
+		RequestDto dto = new RequestDto(5L, null, null, null, Status.VALIDATED, null, null, null);
+
+		when(requestRepository.findWithLockById(5L)).thenReturn(Optional.of(entity));
+		when(requestRepository.save(entity)).thenReturn(saved);
+		when(requestMapper.toDto(saved)).thenReturn(dto);
+
+		requestService.changeStatus(5L, Status.VALIDATED);
+
+		// The 'from' must be RECEIVED (captured before setStatus), never the VALIDATED it has just become.
+		verify(requestStatusHistoryService).recordHistory(saved, Status.RECEIVED, Status.VALIDATED);
 	}
 
 	static Stream<Arguments> legalTransitions() {
