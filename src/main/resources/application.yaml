@@ -21,28 +21,35 @@ spring:
       ddl-auto: validate
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         jdbc:
           batch_size: 20
           fetch_size: 50
         order_inserts: true
         order_updates: true
-    show-sql: false
+
+# OpenAPI / Swagger UI (disattivare in produzione con SWAGGER_ENABLED=false)
+springdoc:
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:true}
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:true}
 
 logging:
   level:
     root: INFO
     org.springframework.web: INFO
-    org.springframework.security: DEBUG
+    org.springframework.security: INFO
     org.hibernate: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
   file:
     name: logs/application.log
-    max-size: 10MB
-    max-history: 30
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
 
 # Custom Application Configuration
 app:
@@ -51,6 +58,3 @@ app:
     jwt-expiration: ${JWT_EXPIRATION:86400000}
     admin-username: ${SECURITY_USER:admin}
     admin-password: ${SECURITY_PASSWORD}
-  encryption:
-    algorithm: AES
-    key: ${ENCRYPTION_KEY}
